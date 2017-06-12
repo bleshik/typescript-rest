@@ -74,13 +74,13 @@ export class FileParam {
  * Metadata for REST service method parameters
  */
 export class MethodParam {
-    constructor(name: string, type: Function, paramType: ParamType) {
+    constructor(name: string | null, type: Function, paramType: ParamType) {
         this.name = name;
         this.type = type;
         this.paramType = paramType;
     }
 
-    name: string;
+    name: string | null;
     type: Function;
     paramType: ParamType;
 }

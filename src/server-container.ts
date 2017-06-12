@@ -44,14 +44,14 @@ export class InternalServer {
             InternalServer.serverClasses.set(name, new metadata.ServiceClass(target));
             InternalServer.inheritParentClass(name);
         }
-        const serviceClass: metadata.ServiceClass = InternalServer.serverClasses.get(name);
+        const serviceClass: metadata.ServiceClass = InternalServer.serverClasses.get(name) as metadata.ServiceClass;
         return serviceClass;
     }
 
     static inheritParentClass(name: string) {
-        const classData: metadata.ServiceClass = InternalServer.serverClasses.get(name);
+        const classData: metadata.ServiceClass = InternalServer.serverClasses.get(name) as metadata.ServiceClass;
         const parent = Object.getPrototypeOf(classData.targetClass.prototype).constructor;
-        const parentClassData: metadata.ServiceClass = InternalServer.getServiceClass(parent);
+        const parentClassData: metadata.ServiceClass | null = InternalServer.getServiceClass(parent);
         if (parentClassData) {
             if (parentClassData.methods) {
                 parentClassData.methods.forEach((value, key) => {
@@ -79,14 +79,14 @@ export class InternalServer {
         }
     }
 
-    static registerServiceMethod(target: Function, methodName: string): metadata.ServiceMethod {
+    static registerServiceMethod(target: Function, methodName: string | null): metadata.ServiceMethod | null {
         if (methodName) {
             InternalServer.pathsResolved = false;
             const classData: metadata.ServiceClass = InternalServer.registerServiceClass(target);
             if (!classData.methods.has(methodName)) {
                 classData.methods.set(methodName, new metadata.ServiceMethod());
             }
-            const serviceMethod: metadata.ServiceMethod = classData.methods.get(methodName);
+            const serviceMethod: metadata.ServiceMethod = classData.methods.get(methodName) as metadata.ServiceMethod;
             return serviceMethod;
         }
         return null;
@@ -148,12 +148,12 @@ export class InternalServer {
         }
     }
 
-    private static getServiceClass(target: Function): metadata.ServiceClass {
+    private static getServiceClass(target: Function): metadata.ServiceClass | null {
         target = InternalServer.serviceFactory.getTargetClass(target);
         return InternalServer.serverClasses.get(target['name'] || target.constructor['name']) || null;
     }
 
-    private validateTargetType(targetClass: Function, types: Array<Function>): boolean {
+    private validateTargetType(targetClass: Function, types?: Array<Function>): boolean {
         if (types && types.length > 0) {
             return (types.indexOf(targetClass) > -1);
         }
@@ -363,31 +363,33 @@ export class InternalServer {
         return result;
     }
 
-    private processParameter(paramType: metadata.ParamType, context: ServiceContext, name: string, type: any) {
+    private processParameter(paramType: metadata.ParamType, context: ServiceContext, name: string | null, type: any) {
         switch (paramType) {
             case metadata.ParamType.path:
-                return this.convertType(context.request.params[name], type);
+                return this.convertType(context.request.params[this.ensureNonNull(name)], type);
             case metadata.ParamType.query:
-                return this.convertType(context.request.query[name], type);
+                return this.convertType(context.request.query[this.ensureNonNull(name)], type);
             case metadata.ParamType.header:
-                return this.convertType(context.request.header(name), type);
+                return this.convertType(context.request.header(this.ensureNonNull(name)), type);
             case metadata.ParamType.cookie:
-                return this.convertType(context.request.cookies[name], type);
+                return this.convertType(context.request.cookies[this.ensureNonNull(name)], type);
             case metadata.ParamType.body:
                 return this.convertType(context.request.body, type);
             case metadata.ParamType.file:
-                const files: Array<Express.Multer.File> = context.request.files?context.request.files[name]:null;
+                const files: Array<Express.Multer.File> | null = context.request.files ?
+                    context.request.files[this.ensureNonNull(name)] :
+                    null;
                 if (files && files.length > 0) {
                     return files[0];
                 }
                 return null;
             case metadata.ParamType.files:
-                return context.request.files[name];
+                return context.request.files[this.ensureNonNull(name)];
             case metadata.ParamType.form:
-                return this.convertType(context.request.body[name], type);
+                return this.convertType(context.request.body[this.ensureNonNull(name)], type);
             case metadata.ParamType.param:
-                const paramValue = context.request.body[name] ||
-                    context.request.query[name];
+                const paramValue = context.request.body[this.ensureNonNull(name)] ||
+                    context.request.query[this.ensureNonNull(name)];
                 return this.convertType(paramValue, type);
             case metadata.ParamType.context:
                 return context;
@@ -404,6 +406,13 @@ export class InternalServer {
             default:
                 throw Error('Invalid parameter type');
         }
+    }
+
+    private ensureNonNull<T>(nullable: T | null | undefined) {
+        if (!nullable) {
+            throw new Error("This shouldn't happen");
+        }
+        return nullable as T;
     }
 
     private convertType(paramValue: string, paramType: Function): any {
@@ -443,7 +452,7 @@ export class InternalServer {
 
     static getHttpMethods(path: string): Set<HttpMethod> {
         InternalServer.resolveAllPaths();
-        const methods: Set<HttpMethod> = InternalServer.paths.get(path);
+        const methods: Set<HttpMethod> | undefined = InternalServer.paths.get(path);
         return methods || new Set<HttpMethod>();
     }
 
@@ -504,7 +513,7 @@ export class InternalServer {
             resolvedPath = resolvedPath + (_.startsWith(methodPath, '/') ? methodPath : '/' + methodPath);
         }
 
-        let declaredHttpMethods: Set<HttpMethod> = InternalServer.paths.get(resolvedPath);
+        let declaredHttpMethods: Set<HttpMethod> | undefined = InternalServer.paths.get(resolvedPath);
         if (!declaredHttpMethods) {
             declaredHttpMethods = new Set<HttpMethod>();
             InternalServer.paths.set(resolvedPath, declaredHttpMethods);

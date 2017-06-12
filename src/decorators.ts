@@ -37,7 +37,7 @@ import * as _ from 'lodash';
  * ```
  */
 export function Path(path: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         if (args.length === 1) {
             return PathTypeDecorator.apply(this, [args[0], path]);
@@ -70,7 +70,7 @@ export function Path(path: string) {
  * If the language requested is not supported, a status code 406 returned
  */
 export function AcceptLanguage(...languages: string[]) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         if (args.length === 1) {
             return AcceptLanguageTypeDecorator.apply(this, [args[0], languages]);
@@ -103,7 +103,7 @@ export function AcceptLanguage(...languages: string[]) {
  * If the mime type requested is not supported, a status code 406 returned
  */
 export function Accept(...accepts: string[]) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         if (args.length === 1) {
             return AcceptTypeDecorator.apply(this, [args[0], accepts]);
@@ -134,7 +134,7 @@ export function Accept(...accepts: string[]) {
  * The field context on the above class will point to the current
  * [[ServiceContext]] instance.
  */
-export function Context(...args: any[]) {
+export function Context(this: any, ...args: any[]) {
     args = _.without(args, undefined);
     const newArgs = args.concat([metadata.ParamType.context, null]);
     if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -165,7 +165,7 @@ export function Context(...args: any[]) {
  * The field request on the above class will point to the current
  * request.
  */
-export function ContextRequest(...args: any[]) {
+export function ContextRequest(this: any, ...args: any[]) {
     args = _.without(args, undefined);
     const newArgs = args.concat([metadata.ParamType.context_request, null]);
     if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -196,7 +196,7 @@ export function ContextRequest(...args: any[]) {
  * The field response on the above class will point to the current
  * response object.
  */
-export function ContextResponse(...args: any[]) {
+export function ContextResponse(this: any, ...args: any[]) {
     args = _.without(args, undefined);
     const newArgs = args.concat([metadata.ParamType.context_response, null]);
     if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -227,7 +227,7 @@ export function ContextResponse(...args: any[]) {
  * The next function can be used to delegate to the next registered
  * middleware the current request processing.
  */
-export function ContextNext(...args: any[]) {
+export function ContextNext(this: any, ...args: any[]) {
     args = _.without(args, undefined);
     const newArgs = args.concat([metadata.ParamType.context_next, null]);
     if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -255,7 +255,7 @@ export function ContextNext(...args: any[]) {
  * }
  * ```
  */
-export function ContextLanguage(...args: any[]) {
+export function ContextLanguage(this: any, ...args: any[]) {
     args = _.without(args, undefined);
     const newArgs = args.concat([metadata.ParamType.context_accept_language, null]);
     if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -283,7 +283,7 @@ export function ContextLanguage(...args: any[]) {
  * }
  * ```
  */
-export function ContextAccept(...args: any[]) {
+export function ContextAccept(this: any, ...args: any[]) {
     args = _.without(args, undefined);
     const newArgs = args.concat([metadata.ParamType.context_accept, null]);
     if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -494,7 +494,10 @@ export function PATCH(target: any, propertyKey: string,
  */
 export function BodyOptions(options: any) {
     return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-        const serviceMethod: metadata.ServiceMethod = InternalServer.registerServiceMethod(target.constructor, propertyKey);
+        const serviceMethod: metadata.ServiceMethod | null = InternalServer.registerServiceMethod(
+            target.constructor,
+            propertyKey
+        );
         if (serviceMethod) { // does not intercept constructor
             serviceMethod.bodyParserOptions = options;
         }
@@ -527,7 +530,7 @@ export function BodyOptions(options: any) {
  * And pass 123 as the id argument on getPerson method's call.
  */
 export function PathParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.path, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -563,7 +566,7 @@ export function PathParam(name: string) {
  * argument on addAvatar method's call.
  */
 export function FileParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.file, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -599,7 +602,7 @@ export function FileParam(name: string) {
  * argument on addAvatar method's call.
  */
 export function FilesParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.files, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -637,7 +640,7 @@ export function FilesParam(name: string) {
  * And pass 'joe' as the name argument on getPerson method's call.
  */
 export function QueryParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.query, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -670,7 +673,7 @@ export function QueryParam(name: string) {
  * header called 'header' to the header argument on getPerson method's call.
  */
 export function HeaderParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.header, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -703,7 +706,7 @@ export function HeaderParam(name: string) {
  * cookie called 'cookie' to the cookie argument on getPerson method's call.
  */
 export function CookieParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.cookie, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -737,7 +740,7 @@ export function CookieParam(name: string) {
  * method's call.
  */
 export function FormParam(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.form, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -772,7 +775,7 @@ export function FormParam(name: string) {
  * received in the current request.
  */
 export function Param(name: string) {
-    return function(...args: any[]) {
+    return function(this: any, ...args: any[]) {
         args = _.without(args, undefined);
         const newArgs = args.concat([metadata.ParamType.param, name]);
         if (args.length < 3 || typeof args[2] === 'undefined') {
@@ -798,7 +801,10 @@ function AcceptLanguageTypeDecorator(target: Function, languages: string[]) {
  */
 function AcceptLanguageMethodDecorator(target: any, propertyKey: string,
     descriptor: PropertyDescriptor, languages: string[]) {
-    const serviceMethod: metadata.ServiceMethod = InternalServer.registerServiceMethod(target.constructor, propertyKey);
+    const serviceMethod: metadata.ServiceMethod | null = InternalServer.registerServiceMethod(
+        target.constructor,
+        propertyKey
+    );
     if (serviceMethod) { // does not intercept constructor
         serviceMethod.languages = languages;
     }
@@ -817,7 +823,10 @@ function AcceptTypeDecorator(target: Function, accepts: string[]) {
  */
 function AcceptMethodDecorator(target: any, propertyKey: string,
     descriptor: PropertyDescriptor, accepts: string[]) {
-    const serviceMethod: metadata.ServiceMethod = InternalServer.registerServiceMethod(target.constructor, propertyKey);
+    const serviceMethod: metadata.ServiceMethod | null = InternalServer.registerServiceMethod(
+        target.constructor,
+        propertyKey
+    );
     if (serviceMethod) { // does not intercept constructor
         serviceMethod.accepts = accepts;
     }
@@ -836,7 +845,10 @@ function PathTypeDecorator(target: Function, path: string) {
  */
 function PathMethodDecorator(target: any, propertyKey: string,
     descriptor: PropertyDescriptor, path: string) {
-    const serviceMethod: metadata.ServiceMethod = InternalServer.registerServiceMethod(target.constructor, propertyKey);
+    const serviceMethod: metadata.ServiceMethod | null = InternalServer.registerServiceMethod(
+        target.constructor,
+        propertyKey
+    );
     if (serviceMethod) { // does not intercept constructor
         serviceMethod.path = path;
     }
@@ -847,7 +859,10 @@ function PathMethodDecorator(target: any, propertyKey: string,
  */
 function processDecoratedParameter(target: Object, propertyKey: string, parameterIndex: number,
     paramType: metadata.ParamType, name: string) {
-    const serviceMethod: metadata.ServiceMethod = InternalServer.registerServiceMethod(target.constructor, propertyKey);
+    const serviceMethod: metadata.ServiceMethod | null = InternalServer.registerServiceMethod(
+        target.constructor,
+        propertyKey
+    );
     if (serviceMethod) { // does not intercept constructor
         const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target, propertyKey);
 
@@ -873,7 +888,10 @@ function processDecoratedProperty(target: Function, key: string, paramType: meta
  */
 function processHttpVerb(target: any, propertyKey: string,
     httpMethod: HttpMethod) {
-    const serviceMethod: metadata.ServiceMethod = InternalServer.registerServiceMethod(target.constructor, propertyKey);
+    const serviceMethod: metadata.ServiceMethod | null = InternalServer.registerServiceMethod(
+        target.constructor,
+        propertyKey
+    );
     if (serviceMethod) { // does not intercept constructor
         if (serviceMethod.httpMethod) {
             throw new Error('Method is already annotated with @' +
@@ -899,9 +917,9 @@ function processServiceMethod(target: any, propertyKey: string, serviceMethod: m
     serviceMethod.parameters.forEach(param => {
         if (param.paramType === metadata.ParamType.cookie) {
             serviceMethod.mustParseCookies = true;
-        } else if (param.paramType === metadata.ParamType.file) {
+        } else if (param.paramType === metadata.ParamType.file && param.name) {
             serviceMethod.files.push(new metadata.FileParam(param.name, true));
-        } else if (param.paramType === metadata.ParamType.files) {
+        } else if (param.paramType === metadata.ParamType.files && param.name) {
             serviceMethod.files.push(new metadata.FileParam(param.name, false));
         } else if (param.paramType === metadata.ParamType.param) {
             serviceMethod.acceptMultiTypedParam = true;
