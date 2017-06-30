@@ -187,7 +187,7 @@ export class InternalServer {
                 options.fileFilter = InternalServer.fileFilter;
             }
             if (InternalServer.fileLimits) {
-                options.limits = InternalServer.fileLimits;
+                options.limits = Object.assign(options.limits || {}, { fileSize: InternalServer.fileLimits });
             }
             if (options.dest) {
                 this.upload = multer(options);
