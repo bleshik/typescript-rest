@@ -18,7 +18,7 @@ export class InternalServer {
     static cookiesSecret: string;
     static cookiesDecoder: (val: string) => string;
     static fileDest: string;
-    static paramConverter: (paramValue: any, paramType: Function) => any = (p, t) => p
+    static paramConverter: (paramValue: any, paramType: Function) => any = (p, t) => p;
     static fileFilter: (req: Express.Request, file: Express.Multer.File, callback: (error: Error, acceptFile: boolean) => void) => void;
     static fileLimits: number;
     static serviceFactory: ServiceFactory = {
